@@ -51,11 +51,19 @@ func (p *PorkbunProvider) Configure(ctx context.Context, req provider.ConfigureR
 		baseUrl = "https://api.porkbun.com/api/json"
 	}
 
+	fileCreds, err := loadCredentialsFile()
+	if err != nil {
+		resp.Diagnostics.AddError("failed to read ~/.porkbun", err.Error())
+		return
+	}
+
 	var apiKey string
 	if !data.ApiKey.IsNull() {
 		apiKey = data.ApiKey.ValueString()
 	} else if v := os.Getenv("PORKBUN_API_KEY"); v != "" {
 		apiKey = v
+	} else if fileCreds.ApiKey != "" {
+		apiKey = fileCreds.ApiKey
 	}
 
 	var secretKey string
@@ -63,6 +71,8 @@ func (p *PorkbunProvider) Configure(ctx context.Context, req provider.ConfigureR
 		secretKey = data.SecretKey.ValueString()
 	} else if v := os.Getenv("PORKBUN_SECRET_KEY"); v != "" {
 		secretKey = v
+	} else if fileCreds.SecretKey != "" {
+		secretKey = fileCreds.SecretKey
 	}
 
 	if baseUrl == "" {
