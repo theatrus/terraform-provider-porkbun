@@ -84,6 +84,7 @@ func (p *PorkbunProvider) Configure(ctx context.Context, req provider.ConfigureR
 	retryClient.ErrorHandler = retryablehttp.PassthroughErrorHandler
 	retryClient.Logger = nil
 	retryClient.RetryMax = 10
+	retryClient.HTTPClient.Transport = newRateLimitedTransport(retryClient.HTTPClient.Transport, 1.0)
 
 	client, err := apiclient.NewClientWithResponses(
 		baseUrl,
